@@ -10,6 +10,8 @@ class EventType(Enum):
     Scheduler = "Scheduler"
     Meta = "Meta"
 
+    ExceptionNotHandled = "ExceptionNotHandled"
+
     # Bot
     BotOnline = "BotOnline"
     BotOffline = "BotOffline"

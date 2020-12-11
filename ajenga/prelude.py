@@ -1,6 +1,6 @@
 from ajenga.event import MessageEvent
 from ajenga.message import Message_T
-from ajenga_app.ctx import this
+from ajenga.ctx import this
 
 
 def _reply(self, message: Message_T, **kwargs):

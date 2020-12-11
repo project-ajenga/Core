@@ -15,7 +15,7 @@ from ajenga.event import MetaEvent
 from ajenga.event import MetaEventType
 from ajenga.log import Logger
 from ajenga.log import logger
-from ajenga_app.provider import meta_provider
+from ajenga.provider import meta_provider
 from . import Service
 from . import remove_service
 from . import set_current_plugin

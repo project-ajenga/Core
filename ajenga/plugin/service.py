@@ -30,12 +30,12 @@ from ajenga.log import logger
 from ajenga.message import Message_T
 from ajenga.models import ContactIdType
 from ajenga.protocol import Api
-from ajenga_app import app
-from ajenga_router import std
-from ajenga_router.models import Graph
-from ajenga_router.models import TerminalNode
-from ajenga_router.keyfunc import PredicateFunction
-from ajenga_router.std import PredicateNode
+from ajenga import app
+from ajenga.routing import std
+from ajenga.routing.models import Graph
+from ajenga.routing.models import TerminalNode
+from ajenga.routing.keyfunc import PredicateFunction
+from ajenga.routing.std import PredicateNode
 
 _loaded_services: Dict[str, "Service"] = {}
 _tmp_current_plugin: Optional["Plugin"] = None
@@ -220,7 +220,7 @@ class Service:
             PredicateFunction(lambda event: self.check_priv(event, required_priv=priv), notation=self))
 
     def on_message(self, graph=std.true, *, priv: Union[int, Callable[[int], bool]] = None):
-        return self.on(router.message.is_message & graph, priv=priv)
+        return self.on(ajenga.router.message.is_message & graph, priv=priv)
 
     def on_loaded(self, arg: Any = None):
         g = (ServiceGraphImpl(self) &

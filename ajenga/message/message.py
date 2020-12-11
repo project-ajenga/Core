@@ -17,7 +17,7 @@ from ajenga.models import ContactIdType
 
 
 if TYPE_CHECKING:
-    from ajenga_app import BotSession
+    from ajenga.ajenga_app import BotSession
 
 
 RefererIdType = Optional[int]

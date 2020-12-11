@@ -6,7 +6,6 @@ import aiohttp
 
 from ajenga.message import Image
 from . import ensure_file_path
-from . import DirectoryType
 
 
 def gen_image_filename(image: Image) -> str:

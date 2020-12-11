@@ -13,7 +13,7 @@ from ajenga.message import MessageElement
 from ajenga.message import Message_T
 from ajenga.models import ContactIdType
 from ajenga.protocol import Api
-from ajenga_app.app import handle_event
+from ajenga.app import handle_event
 
 
 class MetaProvider(EventProvider):

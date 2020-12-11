@@ -1,9 +1,8 @@
 from collections import deque
-from typing import AsyncIterable
 from typing import Iterable
 from typing import Set
 
-from ajenga_router.exceptions import RouteException
+from ..exceptions import RouteException
 from .node import IdentityNode
 from .node import Node
 from .node import NonterminalNode

@@ -11,11 +11,31 @@ from ..pqueue import PriorityQueue
 
 
 class Priority:
-    Max = 10000
-    Wakeup = 1000
+    """
+    TODO: More complete priority
+    Max
+     |          Preprocess events or reject
+    Pre
+     |          Process then suspend
+    Session
+     |
+     |          Free to process, free to suspend
+     |
+    Post
+     |          Postprocess events even if suspended,
+     |          will not execute if rejected
+    Min
+     |          Will never execute
+    """
+    Max = 100000
+    Pre = 60000
+    Session = 30000
+    # ? Should session be in routing or in handler
+    Wakeup = 29999
     Default = 0
-    Min = -10000
-    Never = -99999
+    Post = -50000
+    Min = -100000
+    Never = -999999
 
 
 class Task:

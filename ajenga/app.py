@@ -5,7 +5,7 @@ from ajenga.event import Event
 from ajenga.event import EventProvider
 from ajenga.log import logger
 from ajenga.models import ContactIdType
-from ajenga_router.engine import Engine
+from ajenga.routing.engine import Engine
 
 
 async def handle_event(source: EventProvider, event: Event, **kwargs):
@@ -37,7 +37,7 @@ async def handle_event(source: EventProvider, event: Event, **kwargs):
     return res
 
 
-from ajenga_app.provider import BotSession
+from ajenga.provider import BotSession
 
 engine = Engine()
 _sessions: Dict[ContactIdType, BotSession] = {}

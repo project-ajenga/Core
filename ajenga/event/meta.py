@@ -3,7 +3,9 @@ from dataclasses import field
 from enum import Enum
 
 from ajenga.event import Event
+from ajenga.event import EventProvider
 from ajenga.event import EventType
+from ajenga.routing.keystore import KeyStore
 
 
 class MetaEventType(Enum):
@@ -29,3 +31,11 @@ class MetaEvent(Event):
 
     def __getattr__(self, item):
         return self._dict[item]
+
+
+class ExceptionNotHandledEvent(Event):
+    type: EventType = field(default=EventType.ExceptionNotHandled, init=False)
+    event: Event
+    source: EventProvider
+    exception: Exception
+    store: KeyStore

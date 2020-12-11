@@ -4,22 +4,22 @@ from dataclasses import dataclass
 from typing import List
 from typing import Tuple
 
-import ajenga.router as router
+from ajenga import app
+from ajenga import router
 from ajenga.event import Event
 from ajenga.event import EventProvider
 from ajenga.event import EventType
 from ajenga.message import MessageIdType
 from ajenga.message import Quote
-import ajenga_app.app as app
-from ajenga_app.app import BotSession
-from ajenga_router import std
-from ajenga_router.keystore import KeyStore
-from ajenga_router.models import Graph
-from ajenga_router.models import Priority
-from ajenga_router.models import Task
-from ajenga_router.models import TerminalNode
-from ajenga_router.models.execution import _executor_context
-from ajenga_router.models.execution import _task_context
+from ajenga.provider import BotSession
+from ajenga.routing import std
+from ajenga.routing.keystore import KeyStore
+from ajenga.routing.models import Graph
+from ajenga.routing.models import Priority
+from ajenga.routing.models import Task
+from ajenga.routing.models import TerminalNode
+from ajenga.routing.models.execution import _executor_context
+from ajenga.routing.models.execution import _task_context
 
 _CANDIDATES_KEY = '_wakeup_candidates'
 _SUSPEND_OTHER_KEY = 'suspend_other'
@@ -122,8 +122,8 @@ class _ContextWrapper(metaclass=_ContextWrapperMeta):
         message_id = this.event.message_id if message_id is ... else message_id
         bot = this.bot if bot is ... else bot
         return await cls.wait_until(router.message.has(Quote)
-                                    & std.if_(lambda event, source: event.message.get_first(Quote).id == message_id
-                                                                    and source == bot)
+                                    & std.if_(lambda event, source:
+                                              event.message.get_first(Quote).id == message_id and source == bot)
                                     & graph,
                                     timeout=timeout,
                                     suspend_other=suspend_other,
