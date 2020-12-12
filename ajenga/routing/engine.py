@@ -1,8 +1,8 @@
-from typing import AsyncIterable
-from typing import Callable
-from typing import Iterable
-from typing import Type
-from typing import final
+from ajenga.typing import AsyncIterable
+from ajenga.typing import Callable
+from ajenga.typing import Iterable
+from ajenga.typing import Type
+from ajenga.typing import final
 
 from .exceptions import RouteException
 from .keystore import KeyStore

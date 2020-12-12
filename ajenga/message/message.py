@@ -4,14 +4,14 @@ from abc import ABC
 from dataclasses import dataclass
 from dataclasses import field
 from enum import Enum
-from typing import Iterable
-from typing import List
-from typing import Optional
-from typing import Tuple
-from typing import Type
-from typing import TypeVar
-from typing import TYPE_CHECKING
-from typing import Union
+from ajenga.typing import Iterable
+from ajenga.typing import List
+from ajenga.typing import Optional
+from ajenga.typing import Tuple
+from ajenga.typing import Type
+from ajenga.typing import TypeVar
+from ajenga.typing import TYPE_CHECKING
+from ajenga.typing import Union
 
 from ajenga.models import ContactIdType
 
@@ -120,7 +120,7 @@ class MessageChain(List[MessageElement]):
         if not self:
             return None
         if not (0 <= start < len(self) and 0 <= end <= len(self)):
-            raise IndexError(f'{start=} {end=} len={len(self)}')
+            raise IndexError(f'{start}:{end} len={len(self)}')
         if not end:
             end = len(self)
         for i in range(start, end):

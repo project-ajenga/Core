@@ -19,8 +19,9 @@ setup(
     package_data={
         '': ['*.pyi'],
     },
-    install_requires=['aiohttp', 'pytz', 'aiofiles', 'pygtrie', 'pillow', 'apscheduler'],
+    install_requires=['aiohttp', 'pytz', 'aiofiles', 'pygtrie', 'apscheduler'],
     extras_require={
+        'pillow': ['pillow'],
     },
     python_requires='>=3.7',
     platforms='any',

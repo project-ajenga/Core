@@ -2,11 +2,11 @@ import heapq
 from dataclasses import dataclass
 from dataclasses import field
 from itertools import starmap
-from typing import Callable
-from typing import Generic
-from typing import Iterable
-from typing import List
-from typing import TypeVar
+from ajenga.typing import Callable
+from ajenga.typing import Generic
+from ajenga.typing import Iterable
+from ajenga.typing import List
+from ajenga.typing import TypeVar
 
 _VT = TypeVar('_VT')
 _KT = TypeVar('_KT')

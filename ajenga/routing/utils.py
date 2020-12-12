@@ -2,14 +2,14 @@ import asyncio
 import inspect
 import typing
 from functools import wraps
-from typing import Any
-from typing import AsyncIterable
-from typing import Awaitable
-from typing import Callable
-from typing import Collection
-from typing import Coroutine
-from typing import List
-from typing import Union
+from ajenga.typing import Any
+from ajenga.typing import AsyncIterable
+from ajenga.typing import Awaitable
+from ajenga.typing import Callable
+from ajenga.typing import Collection
+from ajenga.typing import Coroutine
+from ajenga.typing import List
+from ajenga.typing import Union
 
 T = typing.TypeVar("T")
 

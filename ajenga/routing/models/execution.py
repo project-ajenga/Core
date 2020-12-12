@@ -2,10 +2,10 @@ import asyncio
 import contextvars
 import time
 from abc import ABC
-from asyncio.exceptions import CancelledError
-from typing import AsyncIterable
-from typing import Optional
-from typing import Set
+from asyncio import CancelledError
+from ajenga.typing import AsyncIterable
+from ajenga.typing import Optional
+from ajenga.typing import Set
 
 from ..pqueue import PriorityQueue
 

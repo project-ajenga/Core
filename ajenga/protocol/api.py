@@ -1,8 +1,8 @@
 from abc import ABC
-from typing import Generic
-from typing import List
-from typing import Optional
-from typing import TypeVar
+from ajenga.typing import Generic
+from ajenga.typing import List
+from ajenga.typing import Optional
+from ajenga.typing import TypeVar
 
 from ajenga.event import MessageEvent
 from ajenga.message import MessageIdType

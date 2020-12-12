@@ -1,6 +1,6 @@
 from collections import deque
-from typing import Iterable
-from typing import Set
+from ajenga.typing import Iterable
+from ajenga.typing import Set
 
 from ..exceptions import RouteException
 from .node import IdentityNode

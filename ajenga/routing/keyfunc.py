@@ -1,10 +1,10 @@
 from abc import ABC
-from typing import Awaitable
-from typing import Callable
-from typing import Generic
-from typing import Hashable
-from typing import TypeVar
-from typing import Union
+from ajenga.typing import Awaitable
+from ajenga.typing import Callable
+from ajenga.typing import Generic
+from ajenga.typing import Hashable
+from ajenga.typing import TypeVar
+from ajenga.typing import Union
 
 from .utils import wrap_function
 

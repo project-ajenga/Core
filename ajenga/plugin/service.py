@@ -3,13 +3,13 @@ import json
 import os
 from datetime import datetime
 from functools import wraps
-from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import Optional
-from typing import Set
-from typing import Union
-from typing import final
+from ajenga.typing import Any
+from ajenga.typing import Callable
+from ajenga.typing import Dict
+from ajenga.typing import Optional
+from ajenga.typing import Set
+from ajenga.typing import Union
+from ajenga.typing import final
 
 import pytz
 from apscheduler.schedulers.asyncio import AsyncIOScheduler as Scheduler

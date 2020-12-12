@@ -1,10 +1,10 @@
-from typing import AsyncIterable
-from typing import Callable
-from typing import Dict
-from typing import Hashable
-from typing import Iterable
-from typing import Union
-from typing import final
+from ajenga.typing import AsyncIterable
+from ajenga.typing import Callable
+from ajenga.typing import Dict
+from ajenga.typing import Hashable
+from ajenga.typing import Iterable
+from ajenga.typing import Union
+from ajenga.typing import final
 
 import pygtrie
 

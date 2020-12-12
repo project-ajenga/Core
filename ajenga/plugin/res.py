@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from ajenga.typing import Optional
 
 import ajenga
 from ajenga.log import logger

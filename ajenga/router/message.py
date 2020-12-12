@@ -1,11 +1,11 @@
 import re
 from functools import partial
-from typing import AsyncIterable
-from typing import Pattern
-from typing import Type
-from typing import TypeVar
-from typing import Union
-from typing import final
+from ajenga.typing import AsyncIterable
+from ajenga.typing import Pattern
+from ajenga.typing import Type
+from ajenga.typing import TypeVar
+from ajenga.typing import Union
+from ajenga.typing import final
 
 from ajenga import routing as std
 from ajenga.event import EventType

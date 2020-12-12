@@ -4,11 +4,11 @@ import json
 import os
 import sys
 from types import ModuleType
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Set
-from typing import Union
+from ajenga.typing import Dict
+from ajenga.typing import List
+from ajenga.typing import Optional
+from ajenga.typing import Set
+from ajenga.typing import Union
 
 import ajenga
 from ajenga.event import MetaEvent

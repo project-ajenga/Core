@@ -1,8 +1,8 @@
 import asyncio
 import time
 from dataclasses import dataclass
-from typing import List
-from typing import Tuple
+from ajenga.typing import List
+from ajenga.typing import Tuple
 
 from ajenga import app
 from ajenga import router

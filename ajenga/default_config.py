@@ -1,6 +1,6 @@
-from typing import Any
-from typing import Container
-from typing import Dict
+from ajenga.typing import Any
+from ajenga.typing import Container
+from ajenga.typing import Dict
 
 PLUGIN_INFO_FILE: str = 'plugin.json'
 

@@ -1,7 +1,12 @@
 from io import BytesIO
-from typing import Any
+from ajenga.typing import Any
 
-import PIL.Image
+try:
+    from PIL.Image import Image as PILImage
+except ImportError:
+    class PILImage:
+        pass
+
 
 from ajenga.message import *
 
@@ -50,7 +55,7 @@ class Builder:
                 self.append('\n', eol=False)
         elif isinstance(element, MessageElement):
             self._chain.append(element)
-        elif isinstance(element, PIL.Image.Image):
+        elif isinstance(element, PILImage):
             with BytesIO() as buf:
                 element.save(buf, format=image_format)
                 self._chain.append(Image(content=buf.getvalue()))

@@ -1,4 +1,4 @@
-from typing import Union
+from ajenga.typing import Union
 
 from .node import *
 from ..exceptions import RouteException

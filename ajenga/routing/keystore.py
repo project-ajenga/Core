@@ -1,10 +1,10 @@
 import asyncio
-from typing import Any
-from typing import Dict
-from typing import Hashable
-from typing import Mapping
-from typing import TypeVar
-from typing import Union
+from ajenga.typing import Any
+from ajenga.typing import Dict
+from ajenga.typing import Hashable
+from ajenga.typing import Mapping
+from ajenga.typing import TypeVar
+from ajenga.typing import Union
 
 from .keyfunc import KeyFunction
 

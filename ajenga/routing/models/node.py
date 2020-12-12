@@ -1,12 +1,12 @@
 from abc import ABC
-from typing import Any
-from typing import AsyncIterable
-from typing import Dict
-from typing import Hashable
-from typing import Iterable
-from typing import Set
-from typing import Tuple
-from typing import final
+from ajenga.typing import Any
+from ajenga.typing import AsyncIterable
+from ajenga.typing import Dict
+from ajenga.typing import Hashable
+from ajenga.typing import Iterable
+from ajenga.typing import Set
+from ajenga.typing import Tuple
+from ajenga.typing import final
 
 
 class Node(ABC):
@@ -78,6 +78,7 @@ class TerminalNode(Node, ABC):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    @property
     def __id__(self) -> Hashable:
         return id(self)
 
