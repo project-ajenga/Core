@@ -7,7 +7,6 @@ from ajenga.typing import TypeVar
 from ajenga.typing import Union
 from ajenga.typing import final
 
-from ajenga import routing as std
 from ajenga.event import EventType
 from ajenga.event import FriendMessageEvent
 from ajenga.event import GroupMessageEvent
@@ -16,13 +15,14 @@ from ajenga.event import MessageEventTypes
 from ajenga.event import TempMessageEvent
 from ajenga.message import MessageElement
 from ajenga.message import MessageType
-from ajenga.routing.models import NonterminalNode
-from ajenga.routing.models import TerminalNode
-from ajenga.routing.keyfunc import KeyFunctionImpl
-from ajenga.routing.keystore import KeyStore
-from ajenga.routing.std import AbsNonterminalNode
-from ajenga.routing.std import EqualNode
-from ajenga.routing.std import make_graph_deco
+from ajenga.router import std
+from ajenga.router.models import NonterminalNode
+from ajenga.router.models import TerminalNode
+from ajenga.router.keyfunc import KeyFunctionImpl
+from ajenga.router.keystore import KeyStore
+from ajenga.router.std import AbsNonterminalNode
+from ajenga.router.std import EqualNode
+from ajenga.router.std import make_graph_deco
 from . import event_type_is
 from .trie import PrefixNode
 

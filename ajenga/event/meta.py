@@ -5,7 +5,7 @@ from enum import Enum
 from ajenga.event import Event
 from ajenga.event import EventProvider
 from ajenga.event import EventType
-from ajenga.routing.keystore import KeyStore
+from ajenga.router.keystore import KeyStore
 
 
 class MetaEventType(Enum):

@@ -5,7 +5,7 @@ from ajenga.event import Event
 from ajenga.event import EventProvider
 from ajenga.log import logger
 from ajenga.models import ContactIdType
-from ajenga.routing.engine import Engine
+from ajenga.router.engine import Engine
 
 
 async def handle_event(source: EventProvider, event: Event, **kwargs):

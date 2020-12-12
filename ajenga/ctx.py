@@ -12,14 +12,14 @@ from ajenga.event import EventType
 from ajenga.message import MessageIdType
 from ajenga.message import Quote
 from ajenga.provider import BotSession
-from ajenga.routing import std
-from ajenga.routing.keystore import KeyStore
-from ajenga.routing.models import Graph
-from ajenga.routing.models import Priority
-from ajenga.routing.models import Task
-from ajenga.routing.models import TerminalNode
-from ajenga.routing.models.execution import _executor_context
-from ajenga.routing.models.execution import _task_context
+from ajenga.router import std
+from ajenga.router.keystore import KeyStore
+from ajenga.router.models import Graph
+from ajenga.router.models import Priority
+from ajenga.router.models import Task
+from ajenga.router.models import TerminalNode
+from ajenga.router.models.execution import _executor_context
+from ajenga.router.models.execution import _task_context
 
 _CANDIDATES_KEY = '_wakeup_candidates'
 _SUSPEND_OTHER_KEY = 'suspend_other'

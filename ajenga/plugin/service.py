@@ -31,11 +31,11 @@ from ajenga.message import Message_T
 from ajenga.models import ContactIdType
 from ajenga.protocol import Api
 from ajenga import app
-from ajenga.routing import std
-from ajenga.routing.models import Graph
-from ajenga.routing.models import TerminalNode
-from ajenga.routing.keyfunc import PredicateFunction
-from ajenga.routing.std import PredicateNode
+from ajenga.router import std
+from ajenga.router.models import Graph
+from ajenga.router.models import TerminalNode
+from ajenga.router.keyfunc import PredicateFunction
+from ajenga.router.std import PredicateNode
 
 _loaded_services: Dict[str, "Service"] = {}
 _tmp_current_plugin: Optional["Plugin"] = None

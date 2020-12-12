@@ -8,16 +8,16 @@ from ajenga.typing import final
 
 import pygtrie
 
-from ajenga.routing.exceptions import RouteException
-from ajenga.routing.exceptions import RouteInternalException
-from ajenga.routing.models import AbsNode
-from ajenga.routing.models import Node
-from ajenga.routing.models import NonterminalNode
-from ajenga.routing.models import TerminalNode
-from ajenga.routing.keyfunc import KeyFunction
-from ajenga.routing.keyfunc import KeyFunctionImpl
-from ajenga.routing.std import first_argument
-from ajenga.routing.keystore import KeyStore
+from ajenga.router.exceptions import RouteException
+from ajenga.router.exceptions import RouteInternalException
+from ajenga.router.models import AbsNode
+from ajenga.router.models import Node
+from ajenga.router.models import NonterminalNode
+from ajenga.router.models import TerminalNode
+from ajenga.router.keyfunc import KeyFunction
+from ajenga.router.keyfunc import KeyFunctionImpl
+from ajenga.router.std import first_argument
+from ajenga.router.keystore import KeyStore
 
 
 class AbsTrieNonterminalNode(NonterminalNode, AbsNode):
