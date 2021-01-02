@@ -7,3 +7,4 @@ def init_config(config_):
     global config
     config = config_
 
+import ajenga.prelude

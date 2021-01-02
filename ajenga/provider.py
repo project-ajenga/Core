@@ -48,10 +48,6 @@ class BotSession(EventProvider):
         raise NotImplementedError
 
     @property
-    def asgi(self):
-        raise NotImplementedError
-
-    @property
     def api(self) -> Api:
         raise NotImplementedError
 

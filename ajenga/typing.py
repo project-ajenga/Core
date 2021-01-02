@@ -7,3 +7,9 @@ try:
 except ImportError:
     def final(x):
         return x
+
+try:
+    from typing import Annotated
+except ImportError:
+    from typing import _SpecialForm
+    Annotated: _SpecialForm = ...

@@ -17,7 +17,7 @@ from ajenga.models import ContactIdType
 
 
 if TYPE_CHECKING:
-    from ajenga.ajenga_app import BotSession
+    from ajenga.app import BotSession
 
 
 RefererIdType = Optional[int]
@@ -39,6 +39,8 @@ class MessageType(Enum):
     App = "App"
     Json = "Json"
     Xml = "Xml"
+
+    Forward = "Forward"
 
     # Not fully supported yet
     # FlashImage = "FlashImage"
@@ -327,6 +329,24 @@ class Xml(MessageElement):
 
     def as_display(self) -> str:
         return f'[Xml]'
+
+
+
+@dataclass
+class ForwardNode():
+    id: MessageIdType = None
+    name: str = None
+    qq: ContactIdType = None
+    content: MessageChain = None
+
+
+@dataclass
+class Forward(MessageElement):
+    type: MessageType = field(default=MessageType.Forward, init=False)
+    content: List[ForwardNode]
+
+    def as_display(self) -> str:
+        return f'[合并转发消息]'
 
 
 @dataclass
