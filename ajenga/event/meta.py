@@ -9,11 +9,10 @@ from ajenga.router.keystore import KeyStore
 
 
 class MetaEventType(Enum):
-    ServiceLoaded = "ServiceLoaded"
-    ServiceUnload = "ServiceUnload"
-
+    PluginLoad = "PluginLoad"
     PluginLoaded = "PluginLoaded"
     PluginUnload = "PluginUnload"
+    PluginUnloaded = "PluginUnloaded"
 
 
 @dataclass(init=False)

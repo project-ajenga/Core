@@ -158,7 +158,7 @@ class Service:
 
         # self._node_key = PredicateFunction(lambda event: self.check_priv(event), notation=self)
         # self._node = PredicateNode(self._node_key)
-        self._sv_node = router.meta_service_is(self)
+        self._sv_node = router.meta_plugin_is(self.plugin)
         self._terminals: Set[TerminalNode] = set()
 
         self._scheduler = Scheduler()
@@ -222,10 +222,21 @@ class Service:
     def on_message(self, graph=std.true, *, priv: Union[int, Callable[[int], bool]] = None):
         return self.on(ajenga.router.message.is_message & graph, priv=priv)
 
+    def on_load(self, arg: Any = None):
+        g = (ServiceGraphImpl(self) &
+             router.event_type_is(EventType.Meta) &
+             router.meta_type_is(MetaEventType.PluginLoad) &
+             self._sv_node
+             )
+        if isinstance(arg, Callable):
+            return g(arg)
+        else:
+            return g
+
     def on_loaded(self, arg: Any = None):
         g = (ServiceGraphImpl(self) &
              router.event_type_is(EventType.Meta) &
-             router.meta_type_is(MetaEventType.ServiceLoaded) &
+             router.meta_type_is(MetaEventType.PluginLoaded) &
              self._sv_node
              )
         if isinstance(arg, Callable):
@@ -236,7 +247,7 @@ class Service:
     def on_unload(self, arg: Any = None):
         g = (ServiceGraphImpl(self) &
              router.event_type_is(EventType.Meta) &
-             router.meta_type_is(MetaEventType.ServiceUnload) &
+             router.meta_type_is(MetaEventType.PluginUnload) &
              self._sv_node
              )
         if isinstance(arg, Callable):

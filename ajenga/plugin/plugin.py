@@ -16,6 +16,7 @@ from ajenga.event import MetaEventType
 from ajenga.log import Logger
 from ajenga.log import logger
 from ajenga.provider import meta_provider
+from ajenga.utils import max_instances
 from . import Service
 from . import remove_service
 from . import set_current_plugin
@@ -104,6 +105,7 @@ def get_plugin(key: str) -> Optional[Plugin]:
     return _loaded_plugins.get(key, None)
 
 
+@max_instances(1)
 async def load_plugin(*, module_path: str = None, plugin_dir: str = None) -> Optional[Plugin]:
     """Load a Plugin by Plugin module path or Plugin directory
 
@@ -152,16 +154,14 @@ async def load_plugin(*, module_path: str = None, plugin_dir: str = None) -> Opt
         await unload_plugin(plugin, True)
         return None
 
-    for service in plugin.services.values():
-        await meta_provider.send(MetaEvent(MetaEventType.ServiceLoaded, service=service))
+    await meta_provider.send(MetaEvent(MetaEventType.PluginLoad, plugin=plugin))
+    meta_provider.send_nowait(MetaEvent(MetaEventType.PluginLoaded, plugin=plugin))
 
     logger.info(f'Succeeded to load Plugin "{plugin.name}"')
-
-    await meta_provider.send(MetaEvent(MetaEventType.PluginLoaded, plugin=plugin))
-
     return plugin
 
 
+@max_instances(1)
 async def unload_plugin(key: Union[str, Plugin], forced: bool = False) -> bool:
     """Unload a Plugin
 
@@ -180,7 +180,6 @@ async def unload_plugin(key: Union[str, Plugin], forced: bool = False) -> bool:
 
     for service in plugin.services.values():
         try:
-            await meta_provider.send(MetaEvent(MetaEventType.ServiceUnload, service=service))
             remove_service(service)
         except Exception as e:
             logger.exception(e)
@@ -193,6 +192,8 @@ async def unload_plugin(key: Union[str, Plugin], forced: bool = False) -> bool:
     if plugin.path:
         for module in list(filter(lambda x: x.startswith(plugin.path), sys.modules.keys())):
             del sys.modules[module]
+
+    meta_provider.send_nowait(MetaEvent(MetaEventType.PluginUnloaded, plugin=plugin))
 
     logger.info(f'Succeeded to unload Plugin "{plugin_name}"')
     return True

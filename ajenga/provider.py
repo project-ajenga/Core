@@ -21,6 +21,9 @@ class MetaProvider(EventProvider):
     async def send(self, event: MetaEvent):
         await handle_event(self, event)
 
+    def send_nowait(self, event: MetaEvent):
+        asyncio.create_task(handle_event(self, event))
+
 
 meta_provider = MetaProvider()
 
