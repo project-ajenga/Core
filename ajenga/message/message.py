@@ -4,16 +4,12 @@ from abc import ABC
 from dataclasses import dataclass
 from dataclasses import field
 from enum import Enum
-from ajenga.typing import Iterable
-from ajenga.typing import List
-from ajenga.typing import Optional
-from ajenga.typing import Tuple
-from ajenga.typing import Type
-from ajenga.typing import TypeVar
-from ajenga.typing import TYPE_CHECKING
-from ajenga.typing import Union
 
+from ajenga.typing import Iterable, List, Tuple, Union
+from ajenga.typing import Optional, ClassVar
+from ajenga.typing import Type, TYPE_CHECKING, TypeVar
 from ajenga.models import ContactIdType
+from ajenga.message.code import StructCode, escape, unescape
 
 
 if TYPE_CHECKING:
@@ -50,12 +46,21 @@ class MessageType(Enum):
 
 
 @dataclass
-class MessageElement(ABC):
-    type: MessageType
+class MessageElement(StructCode):
+    __message_type__: ClassVar[MessageType] = ...
+
     referer: RefererIdType = field(default=None, init=False)
+
+    @property
+    def type(self) -> MessageType:
+        return self.__message_type__
 
     def copy(self):
         return copy.deepcopy(self)
+
+    @classmethod
+    def decode_it(cls, *args, **kwargs):
+        return cls(*args, **kwargs)
 
     async def raw(self) -> "Optional[MessageElement]":
         """Convert bot dependent message into universal raw message
@@ -85,7 +90,9 @@ class MessageElement(ABC):
 M = TypeVar('M', bound=MessageElement)
 
 
-class MessageChain(List[MessageElement]):
+class MessageChain(List[MessageElement], StructCode):
+    __struct_type__ = StructCode._LIST_TYPE
+
     def __init__(self, msgs: Union[str, MessageElement, Iterable[MessageElement]] = ...):
         super().__init__()
         if msgs is ...:
@@ -111,6 +118,13 @@ class MessageChain(List[MessageElement]):
 
     def as_display(self) -> str:
         return ''.join(x.as_display() for x in self).lstrip()
+
+    def encode(self) -> str:
+        return ''.join(x.encode() for x in self).lstrip()
+
+    @classmethod
+    def decode_it(cls, l):
+        return cls(l)
 
     def get_with_index(self,
                        index: int,
@@ -194,12 +208,15 @@ class MessageChain(List[MessageElement]):
 
 @dataclass
 class Meta(MessageElement):
-    type: MessageType = field(default=MessageType.Meta, init=False)
+    __message_type__ = MessageType.Meta
 
 
 @dataclass
 class Quote(MessageElement):
-    type: MessageType = field(default=MessageType.Quote, init=False)
+    __message_type__ = MessageType.Quote
+    __struct_type__ = "core:quote"
+    __struct_fields__ = ("id", )
+
     id: MessageIdType
     # senderId: int
     # targetId: int
@@ -215,7 +232,10 @@ class Quote(MessageElement):
 
 @dataclass
 class Plain(MessageElement):
-    type: MessageType = field(default=MessageType.Plain, init=False)
+    __message_type__ = MessageType.Plain
+    __struct_type__ = ("core:plain", StructCode._STR_TYPE)
+    __struct_fields__ = ("text", )
+
     text: str
 
     def as_plain(self) -> str:
@@ -227,13 +247,19 @@ class Plain(MessageElement):
     def as_display(self) -> str:
         return self.text
 
+    def encode(self):
+        return escape(self.text)
+
     def __eq__(self, other):
         return isinstance(other, Plain) and self.text == other.text
 
 
 @dataclass
 class At(MessageElement):
-    type: MessageType = field(default=MessageType.At, init=False)
+    __message_type__ = MessageType.At
+    __struct_type__ = "core:at"
+    __struct_fields__ = ("target", )
+
     target: ContactIdType
 
     def as_display(self) -> str:
@@ -245,7 +271,9 @@ class At(MessageElement):
 
 @dataclass
 class AtAll(MessageElement):
-    type: MessageType = field(default=MessageType.AtAll, init=False)
+    __message_type__ = MessageType.AtAll
+    __struct_type__ = "core:atall"
+    __struct_fields__ = ()
 
     def as_display(self) -> str:
         return f'@全体成员'
@@ -256,7 +284,10 @@ class AtAll(MessageElement):
 
 @dataclass
 class Face(MessageElement):
-    type: MessageType = field(default=MessageType.Face, init=False)
+    __message_type__ = MessageType.Face
+    __struct_type__ = "core:face"
+    __struct_fields__ = ("id", )
+
     id: int
 
     def as_display(self) -> str:
@@ -268,7 +299,10 @@ class Face(MessageElement):
 
 @dataclass
 class Image(MessageElement):
-    type: MessageType = field(default=MessageType.Image, init=False)
+    __message_type__ = MessageType.Image
+    __struct_type__ = "core:image"
+    __struct_fields__ = ("url", "hash")
+
     # id: Optional[ImageIdType]
     hash: Optional[str] = None
     url: Optional[str] = None
@@ -296,7 +330,10 @@ class Image(MessageElement):
 
 @dataclass
 class Voice(MessageElement):
-    type: MessageType = field(default=MessageType.Voice, init=False)
+    __message_type__ = MessageType.Voice
+    __struct_type__ = "core:voice"
+    __struct_fields__ = ("url", "hash")
+
     # id: Optional[VoiceIdType]
     hash: Optional[str] = None
     url: Optional[str] = None
@@ -315,8 +352,20 @@ class Voice(MessageElement):
 
 @dataclass
 class App(MessageElement):
-    type: MessageType = field(default=MessageType.App, init=False)
+    __message_type__ = MessageType.App
+    __struct_type__ = "core:app"
+    __struct_fields__ = ("content", )
+
     content: dict = None
+
+    def encode(self) -> str:
+        import json
+        return f"[{self.__struct_type__},content={escape(json.dumps(self.content))}]"
+
+    @classmethod
+    def decode_it(cls, content):
+        import json
+        return cls(content=json.loads(content))
 
     def as_display(self) -> str:
         return f'[小程序]'
@@ -324,12 +373,14 @@ class App(MessageElement):
 
 @dataclass
 class Xml(MessageElement):
-    type: MessageType = field(default=MessageType.Xml, init=False)
+    __message_type__ = MessageType.Xml
+    __struct_type__ = "core:xml"
+    __struct_fields__ = ("content", )
+
     content: str
 
     def as_display(self) -> str:
         return f'[Xml]'
-
 
 
 @dataclass
@@ -342,7 +393,10 @@ class ForwardNode():
 
 @dataclass
 class Forward(MessageElement):
-    type: MessageType = field(default=MessageType.Forward, init=False)
+    __message_type__ = MessageType.Forward
+    __struct_type__ = "core:forward"
+    __struct_fields__ = ()
+
     content: List[ForwardNode]
 
     def as_display(self) -> str:
@@ -351,7 +405,8 @@ class Forward(MessageElement):
 
 @dataclass
 class Unknown(MessageElement):
-    type: MessageType = field(default=MessageType.Unknown, init=False)
+    __message_type__ = MessageType.Unknown
+    __struct_fields__ = ()
 
 
 MessageElement_T = Union[MessageElement, str]

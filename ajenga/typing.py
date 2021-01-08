@@ -1,4 +1,4 @@
-from typing import (Any, AnyStr, AsyncIterable, Awaitable, Callable, Collection, Container, Coroutine,
+from typing import (Any, AnyStr, AsyncIterable, Awaitable, ClassVar, Callable, Collection, Container, Coroutine,
                     Dict, Generic, Hashable, Iterable, List, Mapping, OrderedDict, Pattern, Optional,
                     Set, Tuple, Type, TypeVar, TYPE_CHECKING, Union)
 
