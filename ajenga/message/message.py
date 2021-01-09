@@ -22,6 +22,13 @@ ImageIdType = str
 VoiceIdType = str
 
 
+class classproperty(object):
+    def __init__(self, f):
+        self.f = f
+    def __get__(self, obj, owner):
+        return self.f(owner)
+
+
 class MessageType(Enum):
     Meta = "Meta"
     Plain = "Plain"
@@ -51,9 +58,9 @@ class MessageElement(StructCode):
 
     referer: RefererIdType = field(default=None, init=False)
 
-    @property
-    def type(self) -> MessageType:
-        return self.__message_type__
+    @classproperty
+    def type(cls) -> MessageType:
+        return cls.__message_type__
 
     def copy(self):
         return copy.deepcopy(self)
