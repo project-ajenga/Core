@@ -1,6 +1,7 @@
 import asyncio
 import time
 from dataclasses import dataclass
+from ajenga.typing import Any
 from ajenga.typing import List
 from ajenga.typing import Tuple
 
@@ -13,6 +14,7 @@ from ajenga.message import MessageIdType
 from ajenga.message import Quote
 from ajenga.provider import BotSession
 from ajenga.router import std
+from ajenga.router.state import RouteState
 from ajenga.router.keystore import KeyStore
 from ajenga.router.models import Graph
 from ajenga.router.models import Priority
@@ -41,16 +43,22 @@ class SchedulerEvent(Event):
 class _ContextWrapperMeta(type):
 
     def __getattr__(self, item):
-        return _task_context.get().args[1][item]
+        state, mapping = _task_context.get().args
+        return state.store[mapping[item]] if item in mapping else state.store[item]
 
-    def __setattr__(self, key, value):
-        _task_context.get().args[1][key] = value
+    # def __setattr__(self, key, value):
+    #     _task_context.get().args[0].store[key] = value
 
     def __getitem__(self, item):
+        if isinstance(item, int):
+            try:
+                return _task_context.get().args[0].args[item]
+            except:
+                raise ValueError("Cannot find specified positional argument")
         return self.__getattr__(item)
 
-    def __setitem__(self, key, value):
-        self.__setattr__(key, value)
+    # def __setitem__(self, key, value):
+    #     self.__setattr__(key, value)
 
 
 class _ContextWrapper(metaclass=_ContextWrapperMeta):
@@ -75,10 +83,10 @@ class _ContextWrapper(metaclass=_ContextWrapperMeta):
                 return False
             return True
 
-        async def _add_candidate(_store: KeyStore):
+        async def _add_candidate(_state: RouteState, _store: KeyStore):
             if _CANDIDATES_KEY not in _store:
                 _store[_CANDIDATES_KEY] = []
-            _store[_CANDIDATES_KEY].append((task, _dumpy_node))
+            _store[_CANDIDATES_KEY].append((task, _dumpy_node, (_state, _state.build())))
 
         @app.on(std.if_(_check_timeout) &
                 graph &
@@ -138,22 +146,23 @@ class _ContextWrapper(metaclass=_ContextWrapperMeta):
 @app.on(std.true)
 @std.handler(priority=Priority.Wakeup)
 async def _check_wait(_store: KeyStore):
-    def _wakeup(candi, node):
+    def _wakeup(candi, node, args):
         candi.priority = _task_context.get().priority
+        candi.args = args
         _executor_context.get().add_task(candi)
         app.engine.unsubscribe_terminals([node])
 
-    candidates: List[Tuple[Task, TerminalNode]] = _store.get(_CANDIDATES_KEY, [])
+    candidates: List[Tuple[Task, TerminalNode, Any]] = _store.get(_CANDIDATES_KEY, [])
     candidates.sort(key=lambda e: e[0].last_active_time)
 
     _suspend_other = False
     _suspend_next_priority = False
 
     while not _suspend_other and candidates:
-        candidate, dumpy_node = candidates.pop()
+        candidate, dumpy_node, arguments = candidates.pop()
         _suspend_other = candidate.state[_SUSPEND_OTHER_KEY]
         _suspend_next_priority |= candidate.state[_SUSPEND_NEXT_PRIORITY_KEY]
-        _wakeup(candidate, dumpy_node)
+        _wakeup(candidate, dumpy_node, arguments)
 
     if _suspend_next_priority:
         _executor_context.get().next_priority = False

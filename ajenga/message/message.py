@@ -313,7 +313,7 @@ class Image(MessageElement):
     # id: Optional[ImageIdType]
     hash: Optional[str] = None
     url: Optional[str] = None
-    content: Optional[bytes] = None
+    content: Optional[bytes] = field(default=None, repr=False)
 
     def __post_init__(self):
         if self.content and not self.hash:
@@ -344,7 +344,7 @@ class Voice(MessageElement):
     # id: Optional[VoiceIdType]
     hash: Optional[str] = None
     url: Optional[str] = None
-    content: Optional[bytes] = None
+    content: Optional[bytes] = field(default=None, repr=False)
 
     def as_display(self) -> str:
         return f'[语音]'

@@ -1,10 +1,11 @@
 import re
+import pregex
 from functools import partial
 from ajenga.typing import AsyncIterable
 from ajenga.typing import Pattern
 from ajenga.typing import Type
 from ajenga.typing import TypeVar
-from ajenga.typing import Union
+from ajenga.typing import Union, Set
 from ajenga.typing import final
 
 from ajenga.event import EventType
@@ -16,15 +17,17 @@ from ajenga.event import TempMessageEvent
 from ajenga.message import MessageElement
 from ajenga.message import MessageType
 from ajenga.router import std
-from ajenga.router.models import NonterminalNode
+from ajenga.router.models import NonterminalNode, RouteResult_T
 from ajenga.router.models import TerminalNode
+from ajenga.router.state import RouteState
 from ajenga.router.keyfunc import KeyFunctionImpl
 from ajenga.router.keystore import KeyStore
 from ajenga.router.std import AbsNonterminalNode
 from ajenga.router.std import EqualNode
 from ajenga.router.std import make_graph_deco
+from ajenga.router.trie import PrefixNode
 from . import event_type_is
-from .trie import PrefixNode
+
 
 key_message_content_string = KeyFunctionImpl(lambda event: event.message.as_plain())
 key_message_content_string_stripped = KeyFunctionImpl(lambda event: event.message.as_plain().strip())
@@ -80,10 +83,31 @@ def endswith(text: str, *texts: str, strip: bool = True):
             key=key_message_content_string_reversed)
 
 
-def match(pattern: Pattern):
+def match(pattern: Pattern, flags=0, key='match'):
     return std.if_(KeyFunctionImpl(
-        lambda event: re.match(pattern, event.message.as_plain()),
-        key='match',
+        lambda event: re.match(pattern, event.message.as_plain(), flags),
+        key=key,
+    ))
+
+
+def fullmatch(pattern: Pattern, flags=0, key='match'):
+    return std.if_(KeyFunctionImpl(
+        lambda event: re.fullmatch(pattern, event.message.as_plain(), flags),
+        key=key,
+    ))
+
+
+def pmatch(pattern, flags: pregex.RegexFlag = 0, key='match'):
+    return std.if_(KeyFunctionImpl(
+        lambda event: pregex.match(pattern, event.message.encode(), flags=flags, default_require_post=(MessageElement.decode, None)),
+        key=key,
+    ))
+
+
+def pfullmatch(pattern, flags: pregex.RegexFlag = 0, key='match'):
+    return std.if_(KeyFunctionImpl(
+        lambda event: pregex.fullmatch(pattern, event.message.encode(), flags=flags, default_require_post=(MessageElement.decode, None)),
+        key=key,
     ))
 
 
@@ -103,19 +127,20 @@ class MessageTypeNode(AbsNonterminalNode):
             more = more.type if not isinstance(more, MessageType) else more
             self.add_key(more)
 
-    async def route(self, args, store: KeyStore) -> AsyncIterable[TerminalNode]:
+    async def _route(self, state: RouteState) -> Set[RouteResult_T]:
+        res = set()
         nodes = set()
-        message = store['event'].message
+        message = state.store['event'].message
         for msg in message:
             if msg.type in self._successors:
                 nodes.update(self._successors[msg.type])
 
         for node in nodes:
             if isinstance(node, TerminalNode):
-                yield node
+                res.add(state.wrap(node))
             elif isinstance(node, NonterminalNode):
-                async for terminal in node.route(args, store):
-                    yield terminal
+                res |= await node.route(state)
+        return res
 
 
 def has(msg_type: Type[MessageElement], *or_more: Type[MessageElement]):
