@@ -4,6 +4,7 @@ from ajenga.typing import Tuple, ClassVar, Iterable
 
 class StructCodeMeta(type):
     _meta_type_map = {}
+    _meta_inherit_map = {}
     _STR_TYPE = "default:str"
     _LIST_TYPE = "default:list"
 
@@ -11,12 +12,19 @@ class StructCodeMeta(type):
         _t = super().__new__(mcls, name, bases, attrs)
         _st = attrs.get('__struct_type__')
         if _st is None:
-            pass
-        elif isinstance(_st, Tuple):
+            return _t
+
+        if isinstance(_st, Tuple):
             for _stt in _st:
                 mcls._meta_type_map[_stt] = _t
         else:
             mcls._meta_type_map[_st] = _t
+
+        for base in bases:
+            _bt = getattr(base, '__struct_type__', None)
+            if _bt:
+                mcls._meta_inherit_map.setdefault(_bt, [])
+                mcls._meta_inherit_map[_bt].append(_st)
 
         return _t
 
