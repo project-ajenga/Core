@@ -39,6 +39,7 @@ class MessageType(Enum):
     Quote = "Quote"
 
     Voice = "Voice"
+    File = "File"
     App = "App"
     Json = "Json"
     Xml = "Xml"
@@ -353,6 +354,39 @@ class Voice(MessageElement):
         return isinstance(other, Voice) and any((
             self.hash and self.hash == other.hash,
             self.url and self.url == other.url,
+            self.content and self.content == other.content
+        ))
+
+
+@dataclass
+class File(MessageElement):
+    __message_type__ = MessageType.File
+    __struct_type__ = "core:file"
+    __struct_fields__ = ("url", "hash", "name")
+
+    # id: Optional[VoiceIdType]
+    hash: Optional[str] = None
+    url: Optional[str] = None
+    name: Optional[str] = None
+    content: Optional[bytes] = field(default=None, repr=False)
+
+    def __post_init__(self):
+        if self.content and not self.hash:
+            self.hash = hashlib.md5(self.content).hexdigest()
+
+    def set_content(self, value):
+        self.content = value
+        if value:
+            self.hash = hashlib.md5(self.content).hexdigest()
+
+    def as_display(self) -> str:
+        return f'[文件]'
+
+    def __eq__(self, other):
+        return isinstance(other, File) and any((
+            self.hash and self.hash == other.hash,
+            self.url and self.url == other.url,
+            self.name and self.name == other.name,
             self.content and self.content == other.content
         ))
 

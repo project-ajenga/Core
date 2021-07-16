@@ -7,7 +7,7 @@ packages = find_namespace_packages(include=('ajenga', 'ajenga.*', ))
 
 setup(
     name='ajenga',
-    version='1.1.1',
+    version='1.1.3',
     url='https://github.com/project-ajenga/ajenga',
     license='MIT License',
     author='Hieuzest',

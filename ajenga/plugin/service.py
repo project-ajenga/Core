@@ -1,7 +1,9 @@
 import asyncio
 import json
 import os
+import uuid
 from datetime import datetime
+from dataclasses import dataclass, field
 from functools import wraps
 from ajenga.typing import Any
 from ajenga.typing import Callable
@@ -16,7 +18,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler as Scheduler
 
 import ajenga
 import ajenga.router as router
-from ajenga.event import Event
+from ajenga.event import Event, EventProvider
 from ajenga.event import EventType
 from ajenga.event import FriendMessageEvent
 from ajenga.event import GroupMessageEvent
@@ -92,6 +94,20 @@ class Privilege:
     SUPERUSER = 990
     TERMINAL = 995
     NOBODY = 1000
+
+
+
+class SchedulerSource(EventProvider):
+    pass
+
+
+_scheduler_source = SchedulerSource()
+
+
+@dataclass
+class SchedulerEvent(Event):
+    type: EventType = field(default=EventType.Scheduler, init=False)
+    id: str
 
 
 @final
@@ -385,6 +401,20 @@ class Service:
             return self.scheduler.scheduled_job(*args, **kwargs)(wrapper)
 
         return deco
+
+
+    def scheduled(self, *args, **kwargs) -> Callable:
+        def deco(func: Callable) -> Callable:
+            uid = str(uuid.uuid4())
+            async def _sched():
+                await app.handle_event(_scheduler_source, SchedulerEvent(id=uid))
+
+            self.scheduler.scheduled_job(*args, **kwargs)(_sched)
+
+            return self.on(router.event_type_is(EventType.Scheduler) & router.std.if_(lambda ev: ev.id == uid))(func)
+
+        return deco
+
 
     async def broadcast(self, *messages: Message_T, interval=0.2):
         groups = await self.get_enabled_groups()

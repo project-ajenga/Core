@@ -16,12 +16,10 @@ from ajenga.provider import BotSession
 from ajenga.router import std
 from ajenga.router.state import RouteState
 from ajenga.router.keystore import KeyStore
-from ajenga.router.models import Graph
+from ajenga.router.models import Graph, Executor, Task
 from ajenga.router.models import Priority
 from ajenga.router.models import Task
 from ajenga.router.models import TerminalNode
-from ajenga.router.models.execution import _executor_context
-from ajenga.router.models.execution import _task_context
 
 _CANDIDATES_KEY = '_wakeup_candidates'
 _SUSPEND_OTHER_KEY = 'suspend_other'
@@ -43,16 +41,16 @@ class SchedulerEvent(Event):
 class _ContextWrapperMeta(type):
 
     def __getattr__(self, item):
-        state, mapping = _task_context.get().args
+        state, mapping = Task.current().args
         return state.store[mapping[item]] if item in mapping else state.store[item]
 
     # def __setattr__(self, key, value):
-    #     _task_context.get().args[0].store[key] = value
+    #    Task.current().args[0].store[key] = value
 
     def __getitem__(self, item):
         if isinstance(item, int):
             try:
-                return _task_context.get().args[0].args[item]
+                return Task.current().args[0].args[item]
             except:
                 raise ValueError("Cannot find specified positional argument")
         return self.__getattr__(item)
@@ -71,7 +69,7 @@ class _ContextWrapper(metaclass=_ContextWrapperMeta):
                          suspend_next_priority: bool = False,
                          ):
 
-        task = _task_context.get()
+        task = Task.current()
         task.state[_SUSPEND_OTHER_KEY] = suspend_other
         task.state[_SUSPEND_NEXT_PRIORITY_KEY] = suspend_next_priority
 
@@ -140,16 +138,16 @@ class _ContextWrapper(metaclass=_ContextWrapperMeta):
 
     @classmethod
     def suspend_next_priority(cls):
-        _executor_context.get().next_priority = False
+        Executor.current().next_priority = False
 
 
 @app.on(std.true)
 @std.handler(priority=Priority.Wakeup)
 async def _check_wait(_store: KeyStore):
     def _wakeup(candi, node, args):
-        candi.priority = _task_context.get().priority
+        candi.priority = Task.current().priority
         candi.args = args
-        _executor_context.get().add_task(candi)
+        Executor.current().add_task(candi)
         app.engine.unsubscribe_terminals([node])
 
     candidates: List[Tuple[Task, TerminalNode, Any]] = _store.get(_CANDIDATES_KEY, [])
@@ -165,7 +163,7 @@ async def _check_wait(_store: KeyStore):
         _wakeup(candidate, dumpy_node, arguments)
 
     if _suspend_next_priority:
-        _executor_context.get().next_priority = False
+        Executor.current().next_priority = False
 
 
 class TimeoutError(Exception):
