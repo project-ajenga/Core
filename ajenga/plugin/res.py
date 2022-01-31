@@ -1,12 +1,10 @@
 import os
-from ajenga.typing import Optional
 
 import ajenga
 from ajenga.log import logger
-from . import Plugin
-from . import Service
-from . import get_current_plugin
-from . import get_plugin
+from ajenga.typing import Optional
+
+from . import Plugin, Service, get_current_plugin, get_plugin
 
 
 class DirectoryType:
@@ -16,7 +14,7 @@ class DirectoryType:
     TEMP = 3
 
 
-def get_plugin_dir(pl, dtype: int) -> Optional[str]:
+def get_plugin_dir(pl, dtype: int) -> str:
     if isinstance(pl, Service):
         plugin = pl.plugin
     elif isinstance(pl, Plugin):
@@ -26,8 +24,7 @@ def get_plugin_dir(pl, dtype: int) -> Optional[str]:
     else:
         plugin = get_plugin(pl)
     if not plugin:
-        logger.error(f'Failed to get dir: plugin {pl} not found')
-        return None
+        raise ValueError(f'Failed to get dir: plugin {pl} not found')
 
     if dtype == DirectoryType.MODULE:
         return os.path.dirname(plugin.module.__file__)
@@ -47,11 +44,10 @@ def get_plugin_dir(pl, dtype: int) -> Optional[str]:
         os.makedirs(directory, exist_ok=True)
         return directory
     else:
-        logger.error(f'Failed to get {dtype} dir for plugin {plugin}')
-        return None
+        raise ValueError(f'Failed to get {dtype} dir for plugin {plugin}')
 
 
-def ensure_file_path(pl, dtype, path, *paths, as_abs: bool = False, as_url: bool = False) -> Optional[str]:
+def ensure_file_path(pl, dtype, path, *paths, as_abs: bool = False, as_url: bool = False) -> str:
     if not pl:
         pl = get_current_plugin(depth=2)
     root_path = get_plugin_dir(pl, dtype)
@@ -67,5 +63,4 @@ def ensure_file_path(pl, dtype, path, *paths, as_abs: bool = False, as_url: bool
         else:
             return file_path
     else:
-        logger.error(f'Could not access outside plugin files! {pl} {file_path}')
-        return None
+        raise ValueError(f'Could not access outside plugin files! {pl} {file_path}')
