@@ -11,6 +11,7 @@ class EventType(Enum):
     Meta = "Meta"
 
     ExceptionNotHandled = "ExceptionNotHandled"
+    ApiNotSuccessful = "ApiNotSuccessful"
 
     # Bot
     BotOnline = "BotOnline"

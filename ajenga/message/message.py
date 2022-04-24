@@ -1,16 +1,13 @@
 import copy
 import hashlib
 from abc import ABC
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from enum import Enum
 
-from ajenga.typing import Iterable, List, Tuple, Union
-from ajenga.typing import Optional, ClassVar
-from ajenga.typing import Type, TYPE_CHECKING, TypeVar
-from ajenga.models import ContactIdType
 from ajenga.message.code import StructCode, escape, unescape
-
+from ajenga.models import ContactIdType
+from ajenga.typing import (TYPE_CHECKING, ClassVar, Iterable, List, Optional,
+                           Tuple, Type, TypeVar, Union)
 
 if TYPE_CHECKING:
     from ajenga.app import BotSession
@@ -451,4 +448,4 @@ class Unknown(MessageElement):
 
 
 MessageElement_T = Union[MessageElement, str]
-Message_T = Union[MessageElement_T, List[MessageElement_T]]
+Message_T = Union[MessageElement_T, List[MessageElement_T], MessageChain]

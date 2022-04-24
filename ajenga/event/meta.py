@@ -1,10 +1,7 @@
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from enum import Enum
 
-from ajenga.event import Event
-from ajenga.event import EventProvider
-from ajenga.event import EventType
+from ajenga.event import Event, EventProvider, EventType
 from ajenga.router.keystore import KeyStore
 
 
@@ -23,10 +20,7 @@ class MetaEvent(Event):
     def __init__(self, meta_type, **kwargs):
         self.type = EventType.Meta
         self._dict = {}
-        self._dict.update({
-            'meta_type': meta_type,
-            **kwargs
-        })
+        self._dict.update({'meta_type': meta_type, **kwargs})
 
     def __getattr__(self, item):
         return self._dict[item]

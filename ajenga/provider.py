@@ -1,19 +1,12 @@
 import asyncio
 
-from ajenga.event import Event
-from ajenga.event import EventProvider
-from ajenga.event import FriendMessageEvent
-from ajenga.event import GroupMessageEvent
-from ajenga.event import MessageEvent
-from ajenga.event import MetaEvent
-from ajenga.event import TempMessageEvent
-from ajenga.message import At
-from ajenga.message import MessageChain
-from ajenga.message import MessageElement
-from ajenga.message import Message_T
+from ajenga.app import handle_event
+from ajenga.event import (Event, EventProvider, FriendMessageEvent,
+                          GroupMessageEvent, MessageEvent, MetaEvent,
+                          TempMessageEvent)
+from ajenga.message import At, Message_T, MessageChain, MessageElement
 from ajenga.models import ContactIdType
 from ajenga.protocol import Api
-from ajenga.app import handle_event
 
 
 class MetaProvider(EventProvider):

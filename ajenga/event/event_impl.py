@@ -1,14 +1,9 @@
 from abc import ABC
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 
-from ajenga.event import Event
-from ajenga.event import EventType
-from ajenga.message import MessageChain
-from ajenga.message import MessageIdType
-from ajenga.message import Message_T
-from ajenga.models import ContactIdType
-from ajenga.models import GroupPermission
+from ajenga.event import Event, EventType
+from ajenga.message import Message_T, MessageChain, MessageIdType
+from ajenga.models import ContactIdType, GroupPermission
 
 # TODO: Make field qq, group to structure type Contact_T, Group
 

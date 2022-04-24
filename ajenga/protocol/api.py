@@ -1,17 +1,12 @@
 from abc import ABC
-from ajenga.typing import Generic
-from ajenga.typing import List
-from ajenga.typing import Optional
-from ajenga.typing import TypeVar
+from dataclasses import dataclass, field
+from typing import Dict, Tuple
 
-from ajenga.event import MessageEvent
-from ajenga.message import MessageIdType
-from ajenga.message import Message_T
-from ajenga.models import ContactIdType
-from ajenga.models import Friend
-from ajenga.models import Group
-from ajenga.models import GroupConfig
-from ajenga.models import GroupMember
+from ajenga.event import Event, EventType, MessageEvent
+from ajenga.message import Message_T, MessageIdType
+from ajenga.models import (ContactIdType, Friend, Group, GroupConfig,
+                           GroupMember)
+from ajenga.typing import Generic, List, Optional, TypeVar
 
 T = TypeVar('T')
 
@@ -66,34 +61,38 @@ class MessageSendResult:
 
 
 class Api(ABC):
-
-    async def send_friend_message(self,
-                                  qq: ContactIdType,
-                                  message: Message_T,
-                                  ) -> ApiResult[MessageSendResult]:
+    async def send_friend_message(
+        self,
+        qq: ContactIdType,
+        message: Message_T,
+    ) -> ApiResult[MessageSendResult]:
         raise NotImplementedError
 
-    async def send_temp_message(self,
-                                qq: ContactIdType,
-                                group: ContactIdType,
-                                message: Message_T,
-                                ) -> ApiResult[MessageSendResult]:
+    async def send_temp_message(
+        self,
+        qq: ContactIdType,
+        group: ContactIdType,
+        message: Message_T,
+    ) -> ApiResult[MessageSendResult]:
         raise NotImplementedError
 
-    async def send_group_message(self,
-                                 group: ContactIdType,
-                                 message: Message_T,
-                                 ) -> ApiResult[MessageSendResult]:
+    async def send_group_message(
+        self,
+        group: ContactIdType,
+        message: Message_T,
+    ) -> ApiResult[MessageSendResult]:
         raise NotImplementedError
 
-    async def recall(self,
-                     message_id: MessageIdType,
-                     ) -> ApiResult[None]:
+    async def recall(
+        self,
+        message_id: MessageIdType,
+    ) -> ApiResult[None]:
         raise NotImplementedError
 
-    async def get_message(self,
-                          message_id: MessageIdType,
-                          ) -> ApiResult[MessageEvent]:
+    async def get_message(
+        self,
+        message_id: MessageIdType,
+    ) -> ApiResult[MessageEvent]:
         raise NotImplementedError
 
     async def get_friend_list(self) -> ApiResult[List[Friend]]:
@@ -102,55 +101,73 @@ class Api(ABC):
     async def get_group_list(self) -> ApiResult[List[Group]]:
         raise NotImplementedError
 
-    async def get_group_member_list(self,
-                                    group: ContactIdType,
-                                    ) -> ApiResult[List[GroupMember]]:
+    async def get_group_member_list(
+        self,
+        group: ContactIdType,
+    ) -> ApiResult[List[GroupMember]]:
         raise NotImplementedError
 
-    async def set_group_mute(self,
-                             group: ContactIdType,
-                             qq: Optional[ContactIdType],
-                             duration: Optional[int] = None,
-                             ) -> ApiResult[None]:
+    async def set_group_mute(
+        self,
+        group: ContactIdType,
+        qq: Optional[ContactIdType],
+        duration: Optional[int] = None,
+    ) -> ApiResult[None]:
         raise NotImplementedError
 
-    async def set_group_unmute(self,
-                               group: ContactIdType,
-                               qq: Optional[ContactIdType],
-                               ) -> ApiResult[None]:
+    async def set_group_unmute(
+        self,
+        group: ContactIdType,
+        qq: Optional[ContactIdType],
+    ) -> ApiResult[None]:
         raise NotImplementedError
 
-    async def set_group_kick(self,
-                             group: ContactIdType,
-                             qq: ContactIdType,
-                             ) -> ApiResult[None]:
+    async def set_group_kick(
+        self,
+        group: ContactIdType,
+        qq: ContactIdType,
+    ) -> ApiResult[None]:
         raise NotImplementedError
 
-    async def set_group_leave(self,
-                              group: ContactIdType,
-                              ) -> ApiResult[None]:
+    async def set_group_leave(
+        self,
+        group: ContactIdType,
+    ) -> ApiResult[None]:
         raise NotImplementedError
 
-    async def get_group_config(self,
-                               group: ContactIdType,
-                               ) -> ApiResult[GroupConfig]:
+    async def get_group_config(
+        self,
+        group: ContactIdType,
+    ) -> ApiResult[GroupConfig]:
         raise NotImplementedError
 
-    async def set_group_config(self,
-                               group: ContactIdType,
-                               config: GroupConfig,
-                               ) -> ApiResult[None]:
+    async def set_group_config(
+        self,
+        group: ContactIdType,
+        config: GroupConfig,
+    ) -> ApiResult[None]:
         raise NotImplementedError
 
-    async def get_group_member_info(self,
-                                    group: ContactIdType,
-                                    qq: ContactIdType,
-                                    ) -> ApiResult[GroupMember]:
+    async def get_group_member_info(
+        self,
+        group: ContactIdType,
+        qq: ContactIdType,
+    ) -> ApiResult[GroupMember]:
         raise NotImplementedError
 
-    async def set_group_member_info(self,
-                                    group: ContactIdType,
-                                    qq: ContactIdType,
-                                    info: GroupMember,
-                                    ) -> ApiResult[None]:
+    async def set_group_member_info(
+        self,
+        group: ContactIdType,
+        qq: ContactIdType,
+        info: GroupMember,
+    ) -> ApiResult[None]:
         raise NotImplementedError
+
+
+@dataclass
+class ApiNotSuccessfulEvent(Event):
+    type: EventType = field(default=EventType.ApiNotSuccessful, init=False)
+    api: str
+    session_id: ContactIdType
+    args: Tuple
+    kwargs: Dict
