@@ -9,6 +9,7 @@ class EventType(Enum):
     Protocol = "Protocol"
     Scheduler = "Scheduler"
     Meta = "Meta"
+    Custom = "Custom"
 
     ExceptionNotHandled = "ExceptionNotHandled"
     ApiNotSuccessful = "ApiNotSuccessful"

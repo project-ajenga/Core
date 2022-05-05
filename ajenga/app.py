@@ -1,11 +1,8 @@
-from ajenga.typing import Dict
-from ajenga.typing import Optional
-
-from ajenga.event import Event
-from ajenga.event import EventProvider
+from ajenga.event import Event, EventProvider
 from ajenga.log import logger
 from ajenga.models import ContactIdType
 from ajenga.router.engine import Engine
+from ajenga.typing import Dict, Optional
 
 
 async def handle_event(source: EventProvider, event: Event, **kwargs):
@@ -32,12 +29,13 @@ async def handle_event(source: EventProvider, event: Event, **kwargs):
             except Exception as e:
                 logger.error(f'Error handling event {event} {e}')
                 logger.exception(e)
-        res.append(result)
+        elif result:
+            res.append(result)
 
     return res
 
 
-from ajenga.provider import BotSession
+from ajenga.provider import BotSession, ChannelProvider
 
 engine = Engine()
 _sessions: Dict[ContactIdType, BotSession] = {}

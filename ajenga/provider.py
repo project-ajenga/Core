@@ -1,9 +1,9 @@
 import asyncio
 
 from ajenga.app import handle_event
-from ajenga.event import (Event, EventProvider, FriendMessageEvent,
-                          GroupMessageEvent, MessageEvent, MetaEvent,
-                          TempMessageEvent)
+from ajenga.event import (CustomEvent, Event, EventProvider,
+                          FriendMessageEvent, GroupMessageEvent, MessageEvent,
+                          MetaEvent, TempMessageEvent)
 from ajenga.message import At, Message_T, MessageChain, MessageElement
 from ajenga.models import ContactIdType
 from ajenga.protocol import Api
@@ -12,10 +12,10 @@ from ajenga.protocol import Api
 class MetaProvider(EventProvider):
 
     async def send(self, event: MetaEvent):
-        await handle_event(self, event)
+        return await handle_event(self, event)
 
     def send_nowait(self, event: MetaEvent):
-        asyncio.create_task(handle_event(self, event))
+        return asyncio.create_task(handle_event(self, event))
 
 
 meta_provider = MetaProvider()
@@ -64,3 +64,18 @@ class BotSession(EventProvider):
 
     async def wrap_message(self, message: MessageElement, **kwargs) -> MessageElement:
         raise NotImplementedError
+
+
+class ChannelProvider(EventProvider):
+
+    def __init__(self, channel) -> None:
+        super().__init__()
+        self.channel = channel
+
+    async def send(self, **kwargs):
+        event = CustomEvent(self.channel, **kwargs)
+        return await handle_event(self, event)
+
+    def send_nowait(self, **kwargs):
+        event = CustomEvent(self.channel, **kwargs)
+        return asyncio.create_task(handle_event(self, event))
