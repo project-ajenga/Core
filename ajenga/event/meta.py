@@ -27,6 +27,22 @@ class MetaEvent(Event):
 
 
 @dataclass(init=False)
+class ProtocolEvent(Event):
+    type: EventType = field(default=EventType.Protocol, init=False)
+    protocol: str
+    _dict: dict = field(default_factory=dict, init=False)
+
+    def __init__(self, protocol: str, **kwargs):
+        self.type = EventType.Protocol
+        self.protocol = protocol
+        self._dict = {}
+        self._dict.update(kwargs)
+
+    def __getattr__(self, item):
+        return self._dict[item]
+
+
+@dataclass(init=False)
 class CustomEvent(Event):
     type: EventType = field(default=EventType.Custom, init=False)
     channel: str

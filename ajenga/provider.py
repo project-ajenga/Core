@@ -10,19 +10,21 @@ from ajenga.protocol import Api
 
 
 class MetaProvider(EventProvider):
-
     async def send(self, event: MetaEvent):
         return await handle_event(self, event)
 
     def send_nowait(self, event: MetaEvent):
         return asyncio.create_task(handle_event(self, event))
 
+    @property
+    def type(self) -> str:
+        return "meta"
+
 
 meta_provider = MetaProvider()
 
 
 class BotSession(EventProvider):
-
     @property
     def qq(self) -> ContactIdType:
         raise NotImplementedError
@@ -47,7 +49,10 @@ class BotSession(EventProvider):
     def api(self) -> Api:
         raise NotImplementedError
 
-    async def send(self, event: MessageEvent, message: Message_T, at_sender: bool = False):
+    async def send(self,
+                   event: MessageEvent,
+                   message: Message_T,
+                   at_sender: bool = False):
         if at_sender and isinstance(event, GroupMessageEvent):
             message = MessageChain(message)
             message.insert(0, At(event.sender.qq))
@@ -56,18 +61,22 @@ class BotSession(EventProvider):
 
     async def _send(self, event: MessageEvent, message: Message_T):
         if isinstance(event, GroupMessageEvent):
-            return await self.api.send_group_message(group=event.group, message=message)
+            return await self.api.send_group_message(group=event.group,
+                                                     message=message)
         elif isinstance(event, FriendMessageEvent):
-            return await self.api.send_friend_message(qq=event.sender.qq, message=message)
+            return await self.api.send_friend_message(qq=event.sender.qq,
+                                                      message=message)
         elif isinstance(event, TempMessageEvent):
-            return await self.api.send_temp_message(qq=event.sender.qq, group=event.group, message=message)
+            return await self.api.send_temp_message(qq=event.sender.qq,
+                                                    group=event.group,
+                                                    message=message)
 
-    async def wrap_message(self, message: MessageElement, **kwargs) -> MessageElement:
+    async def wrap_message(self, message: MessageElement,
+                           **kwargs) -> MessageElement:
         raise NotImplementedError
 
 
 class ChannelProvider(EventProvider):
-
     def __init__(self, channel) -> None:
         super().__init__()
         self.channel = channel
@@ -79,3 +88,7 @@ class ChannelProvider(EventProvider):
     def send_nowait(self, **kwargs):
         event = CustomEvent(self.channel, **kwargs)
         return asyncio.create_task(handle_event(self, event))
+
+    @property
+    def type(self) -> str:
+        return "channel"

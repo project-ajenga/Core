@@ -61,4 +61,7 @@ class Event(ABC):
 
 
 class EventProvider(ABC):
-    pass
+
+    @property
+    def type(self) -> str:
+        return type(self).__name__
