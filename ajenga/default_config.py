@@ -1,6 +1,4 @@
-from ajenga.typing import Any
-from ajenga.typing import Container
-from ajenga.typing import Dict
+from ajenga.typing import Any, Container, Dict
 
 PLUGIN_INFO_FILE: str = 'plugin.json'
 
@@ -15,3 +13,5 @@ LOG_DIR: str = './logs'
 APSCHEDULER_CONFIG: Dict[str, Any] = {'apscheduler.timezone': 'Asia/Shanghai'}
 
 SUPERUSERS: Container[int] = []
+
+ENABLE_INSERT_ZWSP: bool = True

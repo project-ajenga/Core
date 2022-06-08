@@ -1,9 +1,11 @@
 import copy
 import hashlib
+import random
 from abc import ABC
 from dataclasses import dataclass, field
 from enum import Enum
 
+import ajenga
 from ajenga.message.code import StructCode, escape, unescape
 from ajenga.models import ContactIdType
 from ajenga.typing import (TYPE_CHECKING, ClassVar, Iterable, List, Optional,
@@ -11,7 +13,6 @@ from ajenga.typing import (TYPE_CHECKING, ClassVar, Iterable, List, Optional,
 
 if TYPE_CHECKING:
     from ajenga.app import BotSession
-
 
 RefererIdType = Optional[int]
 MessageIdType = int
@@ -22,6 +23,7 @@ VoiceIdType = str
 class classproperty(object):
     def __init__(self, f):
         self.f = f
+
     def __get__(self, obj, owner):
         return self.f(owner)
 
@@ -75,7 +77,8 @@ class MessageElement(StructCode):
         self.referer = None
         return self
 
-    async def to(self, bot: "Optional[BotSession]", **kwargs) -> "Optional[MessageElement]":
+    async def to(self, bot: "Optional[BotSession]",
+                 **kwargs) -> "Optional[MessageElement]":
         """Convert universal message into bot dependent message
 
         :return:
@@ -98,7 +101,9 @@ M = TypeVar('M', bound=MessageElement)
 class MessageChain(List[MessageElement], StructCode):
     __struct_type__ = StructCode._LIST_TYPE
 
-    def __init__(self, msgs: Union[str, MessageElement, Iterable[MessageElement]] = ...):
+    def __init__(self,
+                 msgs: Union[str, MessageElement,
+                             Iterable[MessageElement]] = ...):
         super().__init__()
         if msgs is ...:
             pass
@@ -135,8 +140,7 @@ class MessageChain(List[MessageElement], StructCode):
                        index: int,
                        msg_type: Type[M] = MessageElement,
                        start: int = 0,
-                       end: int = 0
-                       ) -> Optional[Tuple[M, int]]:
+                       end: int = 0) -> Optional[Tuple[M, int]]:
         _index = 0
         if not self:
             return None
@@ -164,15 +168,13 @@ class MessageChain(List[MessageElement], StructCode):
     def get_first_with_index(self,
                              msg_type: Type[M] = MessageElement,
                              start: int = 0,
-                             end: int = 0
-                             ) -> Optional[Tuple[M, int]]:
+                             end: int = 0) -> Optional[Tuple[M, int]]:
         return self.get_with_index(0, msg_type, start, end)
 
     def get_first(self,
                   msg_type: Type[M] = MessageElement,
                   start: int = 0,
-                  end: int = 0
-                  ) -> Optional[M]:
+                  end: int = 0) -> Optional[M]:
         return self.get(0, msg_type, start, end)
 
     # def __getitem__(self, item):
@@ -181,7 +183,8 @@ class MessageChain(List[MessageElement], StructCode):
     def __eq__(self, other):
         if isinstance(other, MessageChain) and len(self) == len(other):
             for a, b in zip(self, other):
-                if (not isinstance(a, Meta) or not isinstance(b, Meta)) and a != b:
+                if (not isinstance(a, Meta)
+                        or not isinstance(b, Meta)) and a != b:
                     return False
             return True
         else:
@@ -191,7 +194,8 @@ class MessageChain(List[MessageElement], StructCode):
         # return MessageChain(filter(lambda x: not isinstance(x, Meta), self))
         return copy.deepcopy(self)
 
-    async def to(self, bot: "Optional[BotSession]", **kwargs) -> "MessageChain":
+    async def to(self, bot: "Optional[BotSession]",
+                 **kwargs) -> "MessageChain":
         """Convert universal message into bot dependent message
 
         :return:
@@ -246,9 +250,6 @@ class Plain(MessageElement):
     def as_plain(self) -> str:
         return self.text
 
-    def as_plain(self) -> str:
-        return self.text
-
     def as_display(self) -> str:
         return self.text
 
@@ -257,6 +258,33 @@ class Plain(MessageElement):
 
     def __eq__(self, other):
         return isinstance(other, Plain) and self.text == other.text
+
+    @staticmethod
+    def _insert_seq(seq, x):
+        for i in seq:
+            if '\u4e00' <= i <= '\u9fa5':
+                if random.random() < 0.2:
+                    yield x
+            yield i
+
+    def _insert_zwsp(self) -> "Plain":
+        zwsp = '\ufeff'
+        self.text = ''.join(self._insert_seq(self.text, zwsp))
+        return self
+
+    async def to(self, bot: "Optional[BotSession]",
+                 **kwargs) -> "Optional[MessageElement]":
+        """Convert universal message into bot dependent message
+
+        :return:
+        """
+        if bot is None:
+            return await self.raw()
+        if getattr(ajenga.config, "ENABLE_INSERT_ZWSP",
+                   False) and self.referer == None:
+            return await bot.wrap_message(self.copy()._insert_zwsp(), **kwargs)
+        else:
+            return await bot.wrap_message(self, **kwargs)
 
 
 @dataclass
@@ -326,11 +354,9 @@ class Image(MessageElement):
         return f'[图片]'
 
     def __eq__(self, other):
-        return isinstance(other, Image) and any((
-            self.hash and self.hash == other.hash,
-            self.url and self.url == other.url,
-            self.content and self.content == other.content
-        ))
+        return isinstance(other, Image) and any(
+            (self.hash and self.hash == other.hash, self.url and self.url
+             == other.url, self.content and self.content == other.content))
 
 
 @dataclass
@@ -348,11 +374,9 @@ class Voice(MessageElement):
         return f'[语音]'
 
     def __eq__(self, other):
-        return isinstance(other, Voice) and any((
-            self.hash and self.hash == other.hash,
-            self.url and self.url == other.url,
-            self.content and self.content == other.content
-        ))
+        return isinstance(other, Voice) and any(
+            (self.hash and self.hash == other.hash, self.url and self.url
+             == other.url, self.content and self.content == other.content))
 
 
 @dataclass
@@ -380,12 +404,10 @@ class File(MessageElement):
         return f'[文件]'
 
     def __eq__(self, other):
-        return isinstance(other, File) and any((
-            self.hash and self.hash == other.hash,
-            self.url and self.url == other.url,
-            self.name and self.name == other.name,
-            self.content and self.content == other.content
-        ))
+        return isinstance(other, File) and any(
+            (self.hash and self.hash == other.hash, self.url
+             and self.url == other.url, self.name and self.name == other.name,
+             self.content and self.content == other.content))
 
 
 @dataclass
