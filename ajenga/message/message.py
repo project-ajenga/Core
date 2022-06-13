@@ -247,6 +247,13 @@ class Plain(MessageElement):
 
     text: str
 
+    def __init__(self, text: str):
+        if getattr(ajenga.config, "ENABLE_INSERT_ZWSP", False):
+            zwsp = '\ufeff'
+            self.text = text.replace(zwsp, "")
+        else:
+            self.text = text
+
     def as_plain(self) -> str:
         return self.text
 
