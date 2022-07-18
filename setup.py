@@ -10,7 +10,7 @@ packages = find_namespace_packages(include=(
 
 setup(
     name='ajenga',
-    version='1.4.2',
+    version='1.5.0',
     url='https://github.com/project-ajenga/ajenga',
     license='MIT License',
     author='Hieuzest',
@@ -23,7 +23,8 @@ setup(
         '': ['*.pyi'],
     },
     install_requires=[
-        'aiohttp', 'pytz', 'aiofiles', 'pygtrie', 'apscheduler', 'pregex'
+        'aiohttp', 'pytz', 'aiofiles', 'pygtrie', 'apscheduler',
+        'pregex @ git+ssh://git@github.com/Hieuzest/pregex.git'
     ],
     extras_require={
         'pillow': ['pillow'],
