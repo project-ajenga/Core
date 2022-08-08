@@ -1,25 +1,16 @@
 import asyncio
 import time
 from dataclasses import dataclass
-from ajenga.typing import Any
-from ajenga.typing import List
-from ajenga.typing import Tuple
 
-from ajenga import app
-from ajenga import router
-from ajenga.event import Event
-from ajenga.event import EventProvider
-from ajenga.event import EventType
-from ajenga.message import MessageIdType
-from ajenga.message import Quote
+from ajenga import app, router
+from ajenga.event import Event, EventProvider, EventType
+from ajenga.message import MessageIdType, Quote
 from ajenga.provider import BotSession
 from ajenga.router import std
-from ajenga.router.state import RouteState
 from ajenga.router.keystore import KeyStore
-from ajenga.router.models import Graph, Executor, Task
-from ajenga.router.models import Priority
-from ajenga.router.models import Task
-from ajenga.router.models import TerminalNode
+from ajenga.router.models import Executor, Graph, Priority, Task, TerminalNode
+from ajenga.router.state import RouteState
+from ajenga.typing import Any, List, Tuple
 
 _CANDIDATES_KEY = '_wakeup_candidates'
 _SUSPEND_OTHER_KEY = 'suspend_other'
@@ -39,10 +30,10 @@ class SchedulerEvent(Event):
 
 
 class _ContextWrapperMeta(type):
-
     def __getattr__(self, item):
         state, mapping = Task.current().args
-        return state.store[mapping[item]] if item in mapping else state.store[item]
+        return state.store[
+            mapping[item]] if item in mapping else state.store[item]
 
     # def __setattr__(self, key, value):
     #    Task.current().args[0].store[key] = value
@@ -61,13 +52,14 @@ class _ContextWrapperMeta(type):
 
 class _ContextWrapper(metaclass=_ContextWrapperMeta):
     @classmethod
-    async def wait_until(cls,
-                         graph: Graph,
-                         *,
-                         timeout: float = 3600,
-                         suspend_other: bool = False,
-                         suspend_next_priority: bool = False,
-                         ):
+    async def wait_until(
+        cls,
+        graph: Graph,
+        *,
+        timeout: float = 3600,
+        suspend_other: bool = False,
+        suspend_next_priority: bool = False,
+    ):
 
         task = Task.current()
         task.state[_SUSPEND_OTHER_KEY] = suspend_other
@@ -76,19 +68,19 @@ class _ContextWrapper(metaclass=_ContextWrapperMeta):
         async def _check_timeout():
             cur_time = time.time()
             if cur_time - task.last_active_time > timeout:
-                task.raise_(TimeoutError())
                 app.engine.unsubscribe_terminals([_dumpy_node])
+                if task.paused:
+                    task.raise_(TimeoutError())
                 return False
             return True
 
         async def _add_candidate(_state: RouteState, _store: KeyStore):
             if _CANDIDATES_KEY not in _store:
                 _store[_CANDIDATES_KEY] = []
-            _store[_CANDIDATES_KEY].append((task, _dumpy_node, (_state, _state.build())))
+            _store[_CANDIDATES_KEY].append(
+                (task, _dumpy_node, (_state, _state.build())))
 
-        @app.on(std.if_(_check_timeout) &
-                graph &
-                std.process(_add_candidate))
+        @app.on(std.if_(_check_timeout) & graph & std.process(_add_candidate))
         @std.handler(priority=Priority.Never)
         async def _dumpy_node():
             pass
@@ -102,39 +94,41 @@ class _ContextWrapper(metaclass=_ContextWrapperMeta):
         await task.pause()
 
     @classmethod
-    async def wait_next(cls,
-                        graph: Graph = std.true,
-                        *,
-                        timeout: float = 3600,
-                        suspend_other: bool = False,
-                        suspend_next_priority: bool = False,
-                        ):
-        return await cls.wait_until(router.message.same_event_as(this.event) & graph,
-                                    timeout=timeout,
-                                    suspend_other=suspend_other,
-                                    suspend_next_priority=suspend_next_priority
-                                    )
+    async def wait_next(
+        cls,
+        graph: Graph = std.true,
+        *,
+        timeout: float = 3600,
+        suspend_other: bool = False,
+        suspend_next_priority: bool = False,
+    ):
+        return await cls.wait_until(
+            router.message.same_event_as(this.event) & graph,
+            timeout=timeout,
+            suspend_other=suspend_other,
+            suspend_next_priority=suspend_next_priority)
 
     @classmethod
-    async def wait_quote(cls,
-                         message_id: MessageIdType = ...,
-                         bot: BotSession = ...,
-                         graph: Graph = std.true,
-                         *,
-                         timeout: float = 3600,
-                         suspend_other: bool = False,
-                         suspend_next_priority: bool = False,
-                         ):
+    async def wait_quote(
+        cls,
+        message_id: MessageIdType = ...,
+        bot: BotSession = ...,
+        graph: Graph = std.true,
+        *,
+        timeout: float = 3600,
+        suspend_other: bool = False,
+        suspend_next_priority: bool = False,
+    ):
         message_id = this.event.message_id if message_id is ... else message_id
         bot = this.bot if bot is ... else bot
-        return await cls.wait_until(router.message.has(Quote)
-                                    & std.if_(lambda event, source:
-                                              event.message.get_first(Quote).id == message_id and source == bot)
-                                    & graph,
-                                    timeout=timeout,
-                                    suspend_other=suspend_other,
-                                    suspend_next_priority=suspend_next_priority
-                                    )
+        return await cls.wait_until(
+            router.message.has(Quote)
+            & std.if_(lambda event, source: event.message.get_first(Quote).id
+                      == message_id and source == bot)
+            & graph,
+            timeout=timeout,
+            suspend_other=suspend_other,
+            suspend_next_priority=suspend_next_priority)
 
     @classmethod
     def suspend_next_priority(cls):
@@ -150,7 +144,8 @@ async def _check_wait(_store: KeyStore):
         Executor.current().add_task(candi)
         app.engine.unsubscribe_terminals([node])
 
-    candidates: List[Tuple[Task, TerminalNode, Any]] = _store.get(_CANDIDATES_KEY, [])
+    candidates: List[Tuple[Task, TerminalNode,
+                           Any]] = _store.get(_CANDIDATES_KEY, [])
     candidates.sort(key=lambda e: e[0].last_active_time)
 
     _suspend_other = False
