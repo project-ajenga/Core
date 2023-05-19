@@ -81,7 +81,7 @@ class _ContextWrapper(metaclass=_ContextWrapperMeta):
                 (task, _dumpy_node, (_state, _state.build())))
 
         @app.on(std.if_(_check_timeout) & graph & std.process(_add_candidate))
-        @std.handler(priority=Priority.Never)
+        @std.handler(priority=Priority.Never, count_finished=False)
         async def _dumpy_node():
             pass
 
@@ -136,7 +136,7 @@ class _ContextWrapper(metaclass=_ContextWrapperMeta):
 
 
 @app.on(std.true)
-@std.handler(priority=Priority.Wakeup)
+@std.handler(priority=Priority.Wakeup, count_finished=False)
 async def _check_wait(_store: KeyStore):
     def _wakeup(candi, node, args):
         candi.priority = Task.current().priority

@@ -2,42 +2,32 @@ import asyncio
 import json
 import os
 import uuid
-from datetime import datetime
 from dataclasses import dataclass, field
+from datetime import datetime
 from functools import wraps
-from ajenga.typing import Any
-from ajenga.typing import Callable
-from ajenga.typing import Dict
-from ajenga.typing import Optional
-from ajenga.typing import Set
-from ajenga.typing import Union
-from ajenga.typing import final
 
 import pytz
 from apscheduler.schedulers.asyncio import AsyncIOScheduler as Scheduler
 
 import ajenga
 import ajenga.router as router
-from ajenga.event import Event, EventProvider
-from ajenga.event import EventType
-from ajenga.event import FriendMessageEvent
-from ajenga.event import GroupMessageEvent
-from ajenga.event import GroupPermission
-from ajenga.event import MessageEvent
-from ajenga.event import MessageEventTypes
-from ajenga.event import MetaEventType
-from ajenga.event import TempMessageEvent
-from ajenga.log import Logger
-from ajenga.log import logger
+from ajenga import app
+from ajenga.event import (Event, EventProvider, EventType, FriendMessageEvent,
+                          GroupMessageEvent, GroupPermission, MessageEvent,
+                          MessageEventTypes, MetaEventType, TempMessageEvent)
+from ajenga.log import Logger, logger
 from ajenga.message import Message_T
 from ajenga.models import ContactIdType
 from ajenga.protocol import Api
-from ajenga import app
 from ajenga.router import std
-from ajenga.router.models import Graph
-from ajenga.router.models import TerminalNode
 from ajenga.router.keyfunc import PredicateFunction
+from ajenga.router.models import Graph, TerminalNode
 from ajenga.router.std import PredicateNode
+from ajenga.typing import (TYPE_CHECKING, Any, Callable, Dict, Optional, Set,
+                           Union, final)
+
+if TYPE_CHECKING:
+    from .plugin import Plugin
 
 _loaded_services: Dict[str, "Service"] = {}
 _tmp_current_plugin: Optional["Plugin"] = None
@@ -66,16 +56,20 @@ def _load_service_config(service_key):
 def _save_service_config(service):
     config_file = os.path.join(_service_config_dir, f'{service.key}.json')
     with open(config_file, 'w', encoding='utf8') as f:
-        json.dump({
-            "name": service.name,
-            "use_priv": service.use_priv,
-            "manage_priv": service.manage_priv,
-            "enable_on_default": service.enable_on_default,
-            "visible": service.visible,
-            "enable_group": list(service.enable_group),
-            "disable_group": list(service.disable_group),
-            'user_privs': list(service.user_privs.items())
-        }, f, ensure_ascii=False, indent=2)
+        json.dump(
+            {
+                "name": service.name,
+                "use_priv": service.use_priv,
+                "manage_priv": service.manage_priv,
+                "enable_on_default": service.enable_on_default,
+                "visible": service.visible,
+                "enable_group": list(service.enable_group),
+                "disable_group": list(service.disable_group),
+                'user_privs': list(service.user_privs.items())
+            },
+            f,
+            ensure_ascii=False,
+            indent=2)
 
 
 class Privilege:
@@ -94,7 +88,6 @@ class Privilege:
     SUPERUSER = 990
     TERMINAL = 995
     NOBODY = 1000
-
 
 
 class SchedulerSource(EventProvider):
@@ -132,7 +125,9 @@ class ServiceGraphImpl(Graph):
         return func
 
     def copy(self):
-        return ServiceGraphImpl(sv=self.sv, start=self.start.copy(), closed=self.closed)
+        return ServiceGraphImpl(sv=self.sv,
+                                start=self.start.copy(),
+                                closed=self.closed)
 
 
 class Service:
@@ -140,14 +135,15 @@ class Service:
     plugin: "Plugin"
     logger: Logger
 
-    def __init__(self,
-                 name=None,
-                 *,
-                 use_priv=Privilege.DEFAULT,
-                 manage_priv=Privilege.ADMIN,
-                 enable_on_default=None,
-                 visible=None,
-                 ):
+    def __init__(
+        self,
+        name=None,
+        *,
+        use_priv=Privilege.DEFAULT,
+        manage_priv=Privilege.ADMIN,
+        enable_on_default=None,
+        visible=None,
+    ):
         self.name = name or 'base'
         self.plugin = _tmp_current_plugin
         self.logger = self.plugin.logger.getChild(self.name)
@@ -181,13 +177,16 @@ class Service:
 
         @self.on_loaded()
         def _start_scheduler():
-            if self._scheduler and not self._scheduler.running and self._scheduler.get_jobs():
+            if self._scheduler and not self._scheduler.running and self._scheduler.get_jobs(
+            ):
                 self._scheduler.configure(ajenga.config.APSCHEDULER_CONFIG)
                 self._scheduler.start()
 
         @self.on_unload()
         def _on_unload():
-            self.logger.info(f'Unloading... Unsubscribe all {len(self._terminals)} subscribers.')
+            self.logger.info(
+                f'Unloading... Unsubscribe all {len(self._terminals)} subscribers.'
+            )
             app.engine.unsubscribe_terminals(self._terminals)
 
             # Stop scheduler
@@ -200,7 +199,9 @@ class Service:
         _loaded_services[self.key] = self
         self.plugin.add_service(self)
 
-    def check_priv(self, event: Event, required_priv: Union[int, Callable[[int], bool]] = None):
+    def check_priv(self,
+                   event: Event,
+                   required_priv: Union[int, Callable[[int], bool]] = None):
         if event.type in MessageEventTypes:
             required_priv = self.use_priv if required_priv is None else required_priv
             user_priv = self.get_user_priv(event)
@@ -220,7 +221,7 @@ class Service:
     @property
     def key(self):
         if self.plugin is None:
-            self.logger.error('Access key when service initializing!')
+            raise ValueError('Access key when service initializing!')
         else:
             return f'{self.plugin.name}.{self.name}'
 
@@ -231,41 +232,40 @@ class Service:
     def scheduler(self) -> Scheduler:
         return self._scheduler
 
-    def on(self, graph=std.true, *, priv: Union[int, Callable[[int], bool]] = None):
+    def on(self,
+           graph=std.true,
+           *,
+           priv: Union[int, Callable[[int], bool]] = None):
         return ServiceGraphImpl(self) & graph & PredicateNode(
-            PredicateFunction(lambda event: self.check_priv(event, required_priv=priv), notation=self))
+            PredicateFunction(
+                lambda event: self.check_priv(event, required_priv=priv),
+                notation=self))
 
-    def on_message(self, graph=std.true, *, priv: Union[int, Callable[[int], bool]] = None):
+    def on_message(self,
+                   graph=std.true,
+                   *,
+                   priv: Union[int, Callable[[int], bool]] = None):
         return self.on(ajenga.router.message.is_message & graph, priv=priv)
 
     def on_load(self, arg: Any = None):
-        g = (ServiceGraphImpl(self) &
-             router.event_type_is(EventType.Meta) &
-             router.meta_type_is(MetaEventType.PluginLoad) &
-             self._sv_node
-             )
+        g = (ServiceGraphImpl(self) & router.event_type_is(EventType.Meta)
+             & router.meta_type_is(MetaEventType.PluginLoad) & self._sv_node)
         if isinstance(arg, Callable):
             return g(arg)
         else:
             return g
 
     def on_loaded(self, arg: Any = None):
-        g = (ServiceGraphImpl(self) &
-             router.event_type_is(EventType.Meta) &
-             router.meta_type_is(MetaEventType.PluginLoaded) &
-             self._sv_node
-             )
+        g = (ServiceGraphImpl(self) & router.event_type_is(EventType.Meta)
+             & router.meta_type_is(MetaEventType.PluginLoaded) & self._sv_node)
         if isinstance(arg, Callable):
             return g(arg)
         else:
             return g
 
     def on_unload(self, arg: Any = None):
-        g = (ServiceGraphImpl(self) &
-             router.event_type_is(EventType.Meta) &
-             router.meta_type_is(MetaEventType.PluginUnload) &
-             self._sv_node
-             )
+        g = (ServiceGraphImpl(self) & router.event_type_is(EventType.Meta)
+             & router.meta_type_is(MetaEventType.PluginUnload) & self._sv_node)
         if isinstance(arg, Callable):
             return g(arg)
         else:
@@ -273,7 +273,8 @@ class Service:
 
     @staticmethod
     def check_block_group(group: int):
-        if group in _black_list_group and datetime.now() > _black_list_group[group]:
+        if group in _black_list_group and datetime.now(
+        ) > _black_list_group[group]:
             del _black_list_group[group]  # 拉黑时间过期
             return False
         return bool(group in _black_list_group)
@@ -314,13 +315,12 @@ class Service:
                 return Privilege.PRIVATE_GROUP
         return Privilege.DEFAULT
 
-    async def get_user_priv_in_group(self, qq: ContactIdType, event: GroupMessageEvent, api: Api):
+    async def get_user_priv_in_group(self, qq: ContactIdType,
+                                     event: GroupMessageEvent, api: Api):
         priv = self.get_user_priv(qq)
         if priv == Privilege.BLACK:
             return priv
-        member_info = await api.get_group_member_info(
-            group=event.group,
-            qq=qq)
+        member_info = await api.get_group_member_info(group=event.group, qq=qq)
         if member_info.ok:
             if member_info.data.permission == GroupPermission.OWNER:
                 return max(priv, Privilege.OWNER)
@@ -329,7 +329,8 @@ class Service:
             else:
                 return max(priv, Privilege.GROUP)
 
-    def get_user_priv(self, qq_or_event: Union[ContactIdType, MessageEvent]) -> int:
+    def get_user_priv(self, qq_or_event: Union[ContactIdType,
+                                               MessageEvent]) -> int:
         if isinstance(qq_or_event, ContactIdType):
             if qq_or_event in ajenga.config.SUPERUSERS:
                 return Privilege.SUPERUSER
@@ -349,7 +350,8 @@ class Service:
             self.logger.error(f'Unknown qq_or_event {qq_or_event}')
             return Privilege.DEFAULT
 
-    def set_user_priv(self, qq_or_event: Union[ContactIdType, MessageEvent], priv: int):
+    def set_user_priv(self, qq_or_event: Union[ContactIdType, MessageEvent],
+                      priv: int):
         # print(self.user_privs)
         if isinstance(qq_or_event, int):
             self.user_privs[qq_or_event] = priv
@@ -372,7 +374,9 @@ class Service:
         self.logger.info(f'Service {self.name} is disabled at group {group}')
 
     def check_enabled(self, group: ContactIdType):
-        return bool((group in self.enable_group) or (self.enable_on_default and group not in self.disable_group))
+        return bool(
+            (group in self.enable_group)
+            or (self.enable_on_default and group not in self.disable_group))
 
     async def get_enabled_groups(self) -> dict:
         ret = {}
@@ -396,32 +400,37 @@ class Service:
                     await func()
                 except Exception as e:
                     self.logger.exception(e)
-                    self.logger.error(f'{type(e)} occurred when doing scheduled job {func.__name__}.')
+                    self.logger.error(
+                        f'{type(e)} occurred when doing scheduled job {func.__name__}.'
+                    )
 
             return self.scheduler.scheduled_job(*args, **kwargs)(wrapper)
 
         return deco
 
-
     def scheduled(self, *args, **kwargs) -> Callable:
         def deco(func: Callable) -> Callable:
             uid = str(uuid.uuid4())
+
             async def _sched():
-                await app.handle_event(_scheduler_source, SchedulerEvent(id=uid))
+                await app.handle_event(_scheduler_source,
+                                       SchedulerEvent(id=uid))
 
             self.scheduler.scheduled_job(*args, **kwargs)(_sched)
 
-            return self.on(router.event_type_is(EventType.Scheduler) & router.std.if_(lambda ev: ev.id == uid))(func)
+            return self.on(
+                router.event_type_is(EventType.Scheduler)
+                & router.std.if_(lambda ev: ev.id == uid))(func)
 
         return deco
-
 
     async def broadcast(self, *messages: Message_T, interval=0.2):
         groups = await self.get_enabled_groups()
         for group, qq in groups.items():
             try:
                 for message in messages:
-                    await app.get_session(qq).api.send_group_message(group=group, message=message)
+                    await app.get_session(qq).api.send_group_message(
+                        group=group, message=message)
                     await asyncio.sleep(interval)
             except Exception as e:
                 self.logger.exception(e)
